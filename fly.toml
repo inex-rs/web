@@ -1,0 +1,17 @@
+app = "inex-web"
+primary_region = "syd"
+
+[build]
+  image = "ghcr.io/inex-rs/web:latest"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+
+  [[http_service.checks]]
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "10s"
+    path = "/"

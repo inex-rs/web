@@ -1,0 +1,390 @@
+@import "tailwindcss";
+
+/*
+ * Semantic palette — re-theming means editing THIS block only (components
+ * use surface/panel/line/ink/muted/accent, never raw Tailwind colors).
+ *
+ * Current theme: "paper + SNES violet" — warm light surfaces, deep violet
+ * accent; red stays reserved for errors/destructive actions.
+ */
+@theme {
+  --color-surface: #faf8f4;
+  --color-panel: #ffffff;
+  --color-panel-2: #f2eee6;
+  --color-line: #e7e2d7;
+  --color-ink: #1c1917;
+  --color-ink-2: #44403c;
+  --color-muted: #78716c;
+
+  --color-accent: #7c3aed;
+  /* bright accent for dark surfaces (hero, terminal) */
+  --color-accent-hi: #c4b5fd;
+
+  /* Text sitting on accent fills (buttons) — dark-accent themes
+   * override this to a dark ink. */
+  --color-on-accent: #ffffff;
+
+  /*
+   * Status trio — the ONLY non-neutral, non-accent colours in the system.
+   * Per-theme (dark themes override to brighter variants below). One shade
+   * each: tints and borders come from opacity modifiers (bg-danger/10,
+   * border-danger/60, text-warn), never a second shade. White text is fine on
+   * a solid status fill (they stay dark enough in every theme).
+   */
+  --color-success: #1a7f37;
+  --color-warn: #b45309;
+  --color-danger: #dc2626;
+
+  /* The terminal card keeps its own dark surface on the light page. */
+  --color-term: #171412;
+  --color-term-line: #2c2724;
+  /* Ink for content sitting on the dark term surface (hero, terminal). */
+  --color-term-ink: #f4f1ec;
+  --color-term-ink-2: #b8b0a6;
+
+  --font-mono:
+    "Berkeley Mono",
+    ui-monospace,
+    "JetBrains Mono",
+    "Fira Code",
+    monospace;
+
+  --animate-blink: blink 1.1s steps(1) infinite;
+  --animate-rise: rise 0.35s ease-out both;
+  --animate-ping: ping 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
+  --animate-flash: flash 1.6s ease-out;
+
+  @keyframes blink {
+    50% {
+      opacity: 0;
+    }
+  }
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  /* the live "signal" ring on the connection dot */
+  @keyframes ping {
+    75%,
+    100% {
+      transform: scale(2.4);
+      opacity: 0;
+    }
+  }
+  /* a freshly-streamed publish briefly haloes in accent, then settles */
+  @keyframes flash {
+    from {
+      box-shadow: 0 0 0 0
+        color-mix(in oklab, var(--color-accent) 55%, transparent);
+      border-color: var(--color-accent);
+    }
+    to {
+      box-shadow: 0 0 0 12px transparent;
+    }
+  }
+}
+
+html {
+  scrollbar-color: var(--color-line) transparent;
+}
+
+/*
+ * OverlayScrollbars — slim thumbs from the semantic palette. os-theme-dark
+ * rides on --color-ink so it adapts to every site theme; os-theme-light
+ * stays white-based for fixed-dark surfaces (the studio tour shell).
+ */
+.os-scrollbar {
+  --os-size: 10px;
+  --os-handle-border-radius: 4px;
+}
+.os-scrollbar.os-theme-dark {
+  --os-handle-bg: color-mix(in srgb, var(--color-ink) 20%, transparent);
+  --os-handle-bg-hover: color-mix(in srgb, var(--color-ink) 32%, transparent);
+  --os-handle-bg-active: color-mix(in srgb, var(--color-ink) 40%, transparent);
+}
+/* The page scroller (<main>) keeps its old flex-column contract inside the
+ * OverlayScrollbars viewport, so page roots can flex-1 to fill the screen
+ * (home hero, 404 centering, the docs full-height grid). */
+main > [data-overlayscrollbars-viewport] {
+  display: flex;
+  flex-direction: column;
+}
+
+/* boot splash: bars drop in staggered with overshoot + the wordmark fades up;
+ * on exit they wind up, then drop down and away + fade */
+@keyframes boot-drop {
+  from {
+    transform: translateY(-160%);
+    opacity: 0;
+  }
+  60% {
+    opacity: 1;
+  }
+  75% {
+    transform: translateY(7%);
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+.boot-bar {
+  transform-box: fill-box;
+  animation: boot-drop 0.5s cubic-bezier(0.2, 0.7, 0.3, 1) backwards;
+  animation-delay: calc(var(--bi, 0) * 45ms);
+}
+/* exit: a small wind-up lift, then the bars drop down and away + fade */
+@keyframes boot-drop-out {
+  from {
+    transform: translateY(0);
+  }
+  22% {
+    transform: translateY(-9%);
+  }
+  to {
+    transform: translateY(170%);
+    opacity: 0;
+  }
+}
+/* exit staggers right-to-left (reversed index) — the opposite of the entrance */
+.boot-bar[data-leaving] {
+  animation: boot-drop-out 0.42s cubic-bezier(0.5, 0, 0.7, 0.2) forwards;
+  animation-delay: calc(var(--bri, 0) * 32ms);
+}
+@keyframes boot-word {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+.boot-word {
+  animation: boot-word 0.3s ease-out 0.7s backwards;
+}
+@keyframes boot-word-out {
+  to {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+.boot-word[data-leaving] {
+  animation: boot-word-out 0.32s ease forwards;
+}
+
+/* docs sidebar folders (Ark Collapsible height animation) */
+@keyframes fold-down {
+  from {
+    height: 0;
+    opacity: 0.4;
+  }
+  to {
+    height: var(--height);
+    opacity: 1;
+  }
+}
+@keyframes fold-up {
+  from {
+    height: var(--height);
+    opacity: 1;
+  }
+  to {
+    height: 0;
+    opacity: 0.4;
+  }
+}
+.docs-fold[data-state="open"] {
+  animation: fold-down 200ms ease-out;
+}
+.docs-fold[data-state="closed"] {
+  animation: fold-up 200ms ease-in;
+}
+@media (prefers-reduced-motion: reduce) {
+  .docs-fold[data-state="open"],
+  .docs-fold[data-state="closed"] {
+    animation: none;
+  }
+}
+
+/* stack-viz entry: tiers rise in, staggered via animation-delay */
+@keyframes stack-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+.stack-rise {
+  animation: stack-rise 0.45s ease-out backwards;
+}
+/* the elevated block hovers with a slow idle breath */
+@keyframes stack-breathe {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-1.4px);
+  }
+}
+.stack-breathe {
+  animation: stack-breathe 2.6s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .stack-rise,
+  .stack-breathe {
+    animation: none;
+  }
+}
+
+body {
+  @apply bg-surface text-ink antialiased;
+}
+
+/* Faint blueprint grid + accent glow, for hero/section backdrops. */
+.bg-grid {
+  background-image:
+    linear-gradient(to right, rgb(28 25 23 / 0.055) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(28 25 23 / 0.055) 1px, transparent 1px);
+  background-size: 32px 32px;
+  mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, black, transparent);
+}
+
+.glow-accent {
+  background: radial-gradient(
+    ellipse 55% 45% at 50% 0%,
+    rgb(124 58 237 / 0.09),
+    transparent
+  );
+}
+
+::selection {
+  background: rgb(139 92 246 / 0.3);
+}
+
+/*
+ * The studio demo's chrome tokens (--app-*): the shell in /docs/studio
+ * re-skins with the site theme — theming is a planned feature of the
+ * real studio, and this is its preview. The app palette IS the site
+ * palette (pure aliases, so they can never drift): light themes get a
+ * light studio, dark themes a dark one. The real app's current chrome
+ * is the "studio" theme below — black + blue.
+ */
+:root {
+  --app-bg: var(--color-surface);
+  --app-panel: var(--color-panel);
+  --app-panel-2: var(--color-panel-2);
+  --app-line: var(--color-line);
+  --app-text: var(--color-ink);
+  --app-muted: var(--color-muted);
+  --app-faint: color-mix(in srgb, var(--color-muted) 65%, var(--color-surface));
+  --app-sel: var(--color-accent);
+  --app-sel-hi: var(--color-accent-hi);
+  --app-on-sel: var(--color-on-accent);
+  /* the studio-chrome status names alias the site status tokens (one source;
+     the real studio pins the same pairs — theme.rs success/warn/error). */
+  --app-ok: var(--color-success);
+  --app-warn: var(--color-warn);
+  --app-err: var(--color-danger);
+}
+
+/*
+ * Switchable themes (sticky-footer picker, persisted in localStorage as
+ * "inex-theme"; the bare :root above is "paper+violet"). Each block is a
+ * COMPLETE override of the semantic tokens.
+ * Each theme is ~10 tokens: neutrals + accent + accent-hi (+ on-accent
+ * where the fill needs dark text) + the --app-* studio chrome. Tints and
+ * weak borders come from opacity modifiers (bg-accent/12,
+ * border-accent/40), not ramp steps.
+ */
+
+/* the real studio's chrome, as a site theme: black + blue (the app
+ * demo shows exactly this on this theme) */
+:root[data-theme="studio"] {
+  /* true black, neutral greys — the app's chrome, not a blue-grey riff */
+  --color-surface: #000000;
+  --color-panel: #0a0a0a;
+  --color-panel-2: #121212;
+  --color-line: #1f1f1f;
+  --color-ink: #d4d4d4;
+  --color-ink-2: #a3a3a3;
+  --color-muted: #737373;
+  --color-accent: #3b82f6;
+  --color-accent-hi: #93c5fd;
+  --color-success: #34d399;
+  --color-warn: #fbbf24;
+  --color-danger: #f87171;
+}
+
+:root[data-theme="dmg"] {
+  --color-surface: #c5d1a5;
+  --color-panel: #d7e2b8;
+  --color-panel-2: #b8c495;
+  --color-line: #9aa87a;
+  --color-ink: #2b331a;
+  --color-ink-2: #3f4a28;
+  --color-muted: #5c683d;
+  --color-accent: #2b331a;
+  --color-accent-hi: #a9bc7a;
+  --color-on-accent: #d7e2b8;
+}
+
+:root[data-theme="famicom"] {
+  --color-surface: #f3e8d7;
+  --color-panel: #fdf6ea;
+  --color-panel-2: #eaddc6;
+  --color-line: #dcc9ab;
+  --color-ink: #241a12;
+  --color-ink-2: #4a382a;
+  --color-muted: #7d6a55;
+  --color-accent: #a3232e;
+  --color-accent-hi: #e3938c;
+}
+
+:root[data-theme="vb"] {
+  --color-surface: #0d0a0a;
+  --color-panel: #161010;
+  --color-panel-2: #1f1414;
+  --color-line: #3a2020;
+  --color-ink: #ff5a5a;
+  --color-ink-2: #e04848;
+  --color-muted: #a03434;
+  --color-accent: #ff3b3b;
+  --color-accent-hi: #ffb3b3;
+  --color-on-accent: #240404;
+  --color-success: #34d399;
+  --color-warn: #fbbf24;
+  --color-danger: #f87171;
+}
+
+:root[data-theme="amber"] {
+  --color-surface: #141008;
+  --color-panel: #1c160b;
+  --color-panel-2: #261d0e;
+  --color-line: #3d2f16;
+  --color-ink: #ffd28a;
+  --color-ink-2: #e0b46e;
+  --color-muted: #a5824a;
+  --color-accent: #ffb020;
+  --color-accent-hi: #ffe0a3;
+  --color-on-accent: #201404;
+  --color-success: #34d399;
+  --color-warn: #fbbf24;
+  --color-danger: #f87171;
+}
+
+:root[data-theme="eink"] {
+  --color-surface: #f2f2ef;
+  --color-panel: #fbfbf9;
+  --color-panel-2: #e6e6e1;
+  --color-line: #cfcfc8;
+  --color-ink: #111111;
+  --color-ink-2: #333333;
+  --color-muted: #666666;
+  --color-accent: #111111;
+  --color-accent-hi: #8a8a82;
+  --color-on-accent: #fbfbf9;
+}

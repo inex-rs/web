@@ -1,0 +1,4 @@
+# build context = only the built bundle + nginx drop-in
+*
+!dist
+!deploy
