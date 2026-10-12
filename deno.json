@@ -6,9 +6,10 @@
     "build": "deno task gen-docs && vite build",
     "preview": "vite preview",
     "check": "deno check src/main.tsx worker/og.ts",
-    "lint": "deno lint src/",
+    "lint": "deno lint src/ test/",
+    "test": "deno test --allow-env=SAROS_E2E_URL,SAROS_E2E_TOKEN --allow-net test/",
     "deploy-worker": "deno run -A npm:wrangler deploy",
-    "ci": "deno fmt --check src/ && deno lint src/ && deno task check && deno task build"
+    "ci": "deno fmt --check src/ test/ && deno lint src/ test/ && deno task check && deno task build"
   },
   "imports": {
     "@ark-ui/solid": "npm:@ark-ui/solid@^5.37.1",
