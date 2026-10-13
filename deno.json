@@ -13,7 +13,7 @@
   },
   "imports": {
     "@ark-ui/solid": "npm:@ark-ui/solid@^5.39.3",
-    "@inex/protobufs": "npm:@jsr/inex__protobufs@^0.2.1",
+    "@inex/protobufs": "npm:@jsr/inex__protobufs@^0.3.0",
     "@bufbuild/protobuf": "npm:@bufbuild/protobuf@^2.16.0",
     "@connectrpc/connect": "npm:@connectrpc/connect@^2.2.0",
     "@connectrpc/connect-web": "npm:@connectrpc/connect-web@^2.2.0",
